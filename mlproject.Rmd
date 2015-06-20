@@ -1,0 +1,153 @@
+Coursera Machine Learning Project
+M Hassan
+2015
+========================================================
+
+Wearable devices are gaining popularity recently, there are number of companies both startup and legacy tech leaders that are trying to dominate this new market. Wearable devices collect data from users in different categories of events such as sports actvivities to health. The focus of this project is to utilize some sample data on the quality of certain exercises to predict the manner in which they did the exercise.
+
+Background
+========================================================
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+
+Data Sources
+========================================================
+The training data for this project are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+The data for this project comes from this original source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment.
+
+Goal
+========================================================
+The goal the project is to predict the manner in which users did the exercise. This is the "classe" variable in the training set. 
+
+Data Analysis
+========================================================
+In data analysis for wearables devices, we will attempt to create an accurate machine learning model from the sample data. The goal is to try to find out how accuratly a person performs a particular exercise. We will try to classify each user in a class outcome variable. This is a classification problem where the class variable is called "classe" in the training data set.
+
+Data Preprocessing
+========================================================
+
+There are 2 data sets, the training data set and the testing data set we are attempting to perform the predictions from the final model on. When the data is loaded into dataframes, it is necessary to locate strings containing unwanted strings such as ‘#DIV/0!'. These error codes are loaded into the data frame as NA fields. I have downloaded the training and testing data into my local folder but these 2 files are available online in the data sources section.
+
+
+Data loading in training and testing sets
+========================================================
+```{r}
+library(caret)
+
+pml.train <- read.csv(file = 'pml-training.csv',na.strings = c('NA','#DIV/0!',''))
+pml.test <- read.csv(file = 'pml-testing.csv',na.strings = c('NA','#DIV/0!',''))
+```
+
+
+Exploraring Data Analysis
+========================================================
+Summary of plm.train
+
+We have 159 variables and outcome variable "class" of exercice. Some of variables contain NA and are not used for in the class prediction analysis. There are 152 variables that can be used capture a person body's movement that will be used as predictors. There are other variables that are considered as predictors such as a person username that do notcontain any measurements.
+
+
+```{r}
+dim(pml.train)
+str(pml.train)
+```
+
+Converting to numeric variables for the rest of the columns that contain measurement predictors.
+```{r}
+for(i in c(8:ncol(pml.train)-1)) {
+  pml.train[,i] = as.numeric(as.character(pml.train[,i]))
+  pml.test[,i] = as.numeric(as.character(pml.test[,i]))
+}
+```
+
+Data Cleaning
+========================================================
+
+Some columns in the data set have more data consisting of either Null values and/or NA. We can remove these columns since they are considered sparse and do not add any significance to classifying our model. We also want to remove variables that just describe the data rather offer us any meaningfull measurements. These are the first 7 variables.
+
+```{r}
+head(names(pml.train),7)
+```
+
+Remove columns with NA and a value of 0
+Remove first 7 columns/variables.
+
+```{r}
+predictors <- colnames(pml.train)
+predictors  <- colnames(pml.train[colSums(is.na(pml.train)) == 0])
+predictors  <- predictors [-c(1:7)]
+```
+
+Spliting data into training and testing 
+========================================================
+We split training data randomly into a new training and testing dataset with 80% of data into training and 20% into testing data to validate the accuracy of the classification model.
+
+
+```{r}
+set.seed(1200)
+train.index <- createDataPartition(y=pml.train$classe, p=0.80, list=FALSE)
+pml_train <- pml.train[train.index,predictors]
+pml_test <- pml.train[-train.index,predictors]
+```
+
+We have less predictors now than in the original training dataset
+
+```{r}
+dim(pml_train); dim(pml_test)
+```
+Visualize different classes frequencies using a histogram
+=========================================================
+Before a model is fit, it is useful to have an idea of the ratio that should be expected of the classification variable outcome. This wil govern how we seek to optimize models for Specificity, Sensitivity, and Positive/Negative Predictive Value. 
+```{r}
+hist(as.numeric(pml_train$classe),main="Histogram of Class frequency", ylab="Frequency",xlab='Classes',breaks=5, col='blue', freq=T)
+```
+
+The amplitude for each of the bar on the chart are of similar range. Each class is equally likely to be an outcome. This indicates that optimizing a model for accuracy and minimizing overall out of sample error should indicate an optimal model for making classificions.
+
+Train a Model and Cross Validation
+========================================
+From prelimiary analysis, a Random Forest model was chosenn with 2 number of folds for cross-validation
+
+```{r}
+library(e1071)
+rf.model <- train(classe ~ ., data = pml_train, method = 'rf', 
+                trControl = trainControl(method = "cv", 
+                                         number = 2, 
+                                         allowParallel = TRUE, 
+                                         verboseIter = TRUE))
+pred.rf <- predict(rf.model,pml_test)
+final.model.rf <- confusionMatrix(pred.rf,pml_test$classe)
+```
+
+Prediction agains cross validation model
+========================================
+For each candidate model, predictions are made against the cross-validation dataset. Then a confusion matrix is calculated and stored for each model for later reference.
+
+Final Model Evaluation
+======================
+We can now evaluate our model
+
+```{r}
+final.model.rf 
+```
+
+The accuracy of the model is 0.9939. The out of sample error is 1- accuracy = 0.0061. Considering that the test set is a sample size of 20, an accuracy rate well above 99% is sufficient to expect that few or none of the test samples will be mis-classified.
+
+Applying Selected Model to Test Set
+===================================
+
+Now finaly, we can classify our testing data consisting of 20 observations. We can make predictions from the most accurate tree in the random forest.
+
+```{r}
+predictClasse <- length(colnames(pml.test[]))
+validate.rf <- predict(rf.model,pml.test[,predictors])
+validate.rf
+```
+
