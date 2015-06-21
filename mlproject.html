@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=9" >
 
-<title>2015</title>
+<title>Coursera Machine Learning: Project M Hassan 2015</title>
 
 <style type="text/css">
 body, td {
@@ -179,10 +179,7 @@ hljs.initHighlightingOnLoad();
 </head>
 
 <body>
-<p>Coursera Machine Learning Project
-M Hassan</p>
-
-<h1>2015</h1>
+<h1>Coursera Machine Learning: Project M Hassan 2015</h1>
 
 <p>Wearable devices are gaining popularity recently, there are number of companies both startup and legacy tech leaders that are trying to dominate this new market. Wearable devices collect data from users in different categories of events such as sports actvivities to health. The focus of this project is to utilize some sample data on the quality of certain exercises to predict the manner in which they did the exercise.</p>
 
@@ -399,7 +396,7 @@ pml_test &lt;- pml.train[-train.index,predictors]
 
 <h1>Visualize different classes frequencies using a histogram</h1>
 
-<p>Before a model is fit, it is useful to have an idea of the ratio that should be expected of the classification variable outcome. This wil govern how we seek to optimize models for Specificity, Sensitivity, and Positive/Negative Predictive Value. </p>
+<p>Before a model is fit, it is useful to have an idea of the ratio that should be expected of the classification variable outcome. This wil govern how we seek to optimize models for Specificity, Sensitivity, and Positive Negative Predictive Value. </p>
 
 <pre><code class="r">hist(as.numeric(pml_train$classe),main=&quot;Histogram of Class frequency&quot;, ylab=&quot;Frequency&quot;,xlab=&#39;Classes&#39;,breaks=5, col=&#39;blue&#39;, freq=T)
 </code></pre>
@@ -443,18 +440,14 @@ rf.model &lt;- train(classe ~ ., data = pml_train, method = &#39;rf&#39;,
 </code></pre>
 
 <pre><code class="r">pred.rf &lt;- predict(rf.model,pml_test)
-final.model.rf &lt;- confusionMatrix(pred.rf,pml_test$classe)
+confusionMatrix.rf &lt;- confusionMatrix(pred.rf,pml_test$classe)
 </code></pre>
-
-<h1>Prediction agains cross validation model</h1>
-
-<p>For each candidate model, predictions are made against the cross-validation dataset. Then a confusion matrix is calculated and stored for each model for later reference.</p>
 
 <h1>Final Model Evaluation</h1>
 
-<p>We can now evaluate our model</p>
+<p>We can now evaluate our model.</p>
 
-<pre><code class="r">final.model.rf 
+<pre><code class="r">confusionMatrix.rf 
 </code></pre>
 
 <pre><code>## Confusion Matrix and Statistics
@@ -497,16 +490,13 @@ final.model.rf &lt;- confusionMatrix(pred.rf,pml_test$classe)
 <p>Now finaly, we can classify our testing data consisting of 20 observations. We can make predictions from the most accurate tree in the random forest.</p>
 
 <pre><code class="r">predictClasse &lt;- length(colnames(pml.test[]))
-validate.rf &lt;- predict(rf.model,pml.test[,predictors])
+colnames(pml.test)[predictClasse] &lt;- &#39;classe&#39;
+validate.rf &lt;- predict(rf.model, pml.test[,predictors])
+validate.rf
 </code></pre>
 
-<pre><code>## Error in `[.data.frame`(pml.test, , predictors): undefined columns selected
-</code></pre>
-
-<pre><code class="r">validate.rf
-</code></pre>
-
-<pre><code>## Error in eval(expr, envir, enclos): object &#39;validate.rf&#39; not found
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
 </code></pre>
 
 </body>

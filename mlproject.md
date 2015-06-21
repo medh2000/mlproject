@@ -1,6 +1,4 @@
-Coursera Machine Learning Project
-M Hassan
-2015
+Coursera Machine Learning: Project M Hassan 2015
 ========================================================
 
 Wearable devices are gaining popularity recently, there are number of companies both startup and legacy tech leaders that are trying to dominate this new market. Wearable devices collect data from users in different categories of events such as sports actvivities to health. The focus of this project is to utilize some sample data on the quality of certain exercises to predict the manner in which they did the exercise.
@@ -247,7 +245,8 @@ dim(pml_train); dim(pml_test)
 ```
 Visualize different classes frequencies using a histogram
 =========================================================
-Before a model is fit, it is useful to have an idea of the ratio that should be expected of the classification variable outcome. This wil govern how we seek to optimize models for Specificity, Sensitivity, and Positive/Negative Predictive Value. 
+Before a model is fit, it is useful to have an idea of the ratio that should be expected of the classification variable outcome. This wil govern how we seek to optimize models for Specificity, Sensitivity, and Positive Negative Predictive Value. 
+
 
 ```r
 hist(as.numeric(pml_train$classe),main="Histogram of Class frequency", ylab="Frequency",xlab='Classes',breaks=5, col='blue', freq=T)
@@ -297,20 +296,17 @@ rf.model <- train(classe ~ ., data = pml_train, method = 'rf',
 
 ```r
 pred.rf <- predict(rf.model,pml_test)
-final.model.rf <- confusionMatrix(pred.rf,pml_test$classe)
+confusionMatrix.rf <- confusionMatrix(pred.rf,pml_test$classe)
 ```
 
-Prediction agains cross validation model
-========================================
-For each candidate model, predictions are made against the cross-validation dataset. Then a confusion matrix is calculated and stored for each model for later reference.
 
 Final Model Evaluation
 ======================
-We can now evaluate our model
+We can now evaluate our model.
 
 
 ```r
-final.model.rf 
+confusionMatrix.rf 
 ```
 
 ```
@@ -357,18 +353,13 @@ Now finaly, we can classify our testing data consisting of 20 observations. We c
 
 ```r
 predictClasse <- length(colnames(pml.test[]))
-validate.rf <- predict(rf.model,pml.test[,predictors])
-```
-
-```
-## Error in `[.data.frame`(pml.test, , predictors): undefined columns selected
-```
-
-```r
+colnames(pml.test)[predictClasse] <- 'classe'
+validate.rf <- predict(rf.model, pml.test[,predictors])
 validate.rf
 ```
 
 ```
-## Error in eval(expr, envir, enclos): object 'validate.rf' not found
+##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E
 ```
 
